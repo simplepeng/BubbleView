@@ -13,7 +13,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.ImageView;
+import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,31 +21,39 @@ import java.util.List;
 /**
  *
  */
-public class BubbleView extends ImageView {
+public class BubbleView extends View {
 
+    //贝塞尔曲线的path
     private Path mPath;
+    //圆的画笔
     private Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    //文字的画笔
     private Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
+    //开始的圆
     private Circle startCircle;
+    //结束的圆
     private Circle endCircle;
 
     private float startCircleRadius = Density.dp2px(getContext(), 15);
     private float endCircleRadius = Density.dp2px(getContext(), 15);
-
+    //两个圆连接的点
     private Point startCircleA = new Point();
     private Point startCircleB = new Point();
     private Point endCircleC = new Point();
     private Point endCircleD = new Point();
+    //控制贝塞尔曲线的点
     private Point quadControlE = new Point();
-
+    //圆心相距的距离
     private float circleCenterDistan = 0;
-
+    //是否能画path
     private boolean canDrawPath = true;
-
+    //默认的文本
     private String text = "";
+    //圆的颜色
     private int circle_color;
+    //文字的颜色
     private int text_color;
+    //文字的大小
     private float text_size;
     //粒子的集合
     private List<Particle> particleList = new ArrayList<>();
@@ -53,7 +61,7 @@ public class BubbleView extends ImageView {
     private boolean canDrawParticle = false;
     //粒子的画笔
     private Paint particlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Canvas mCanvas;
+    //生成粒子的bitmap
     private Bitmap bitmap;
 
     public BubbleView(Context context) {
@@ -73,8 +81,6 @@ public class BubbleView extends ImageView {
 
     private void init() {
         mPath = new Path();
-        circlePaint.setColor(Color.RED);
-//        textPaint.setTextSize(dpToPx(15, getResources()));
         circlePaint.setColor(circle_color);
         textPaint.setColor(text_color);
         textPaint.setTextSize(text_size);
@@ -82,7 +88,6 @@ public class BubbleView extends ImageView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int width_mode = MeasureSpec.getMode(widthMeasureSpec);
         int width_size = MeasureSpec.getSize(widthMeasureSpec);
         if (width_mode == MeasureSpec.EXACTLY) {
@@ -103,18 +108,12 @@ public class BubbleView extends ImageView {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-//
-//        ViewGroup parent = ((ViewGroup) this.getParent());
-//        if (parent != null) {
-//            parent.setClipChildren(false);
-//        }
         startCircle = new Circle(w / 2, w / 2, h / 2);
         endCircle = new Circle(w / 2, w / 2, h / 2);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        mCanvas = canvas;
         if (canDrawPath) {
             drawPath(canvas);
             drawCircle(canvas, startCircle);
@@ -297,6 +296,16 @@ public class BubbleView extends ImageView {
 
     public void setText(String text){
         this.text = text;
+        invalidate();
+    }
+
+    public void setTextColor(int textColor){
+        textPaint.setColor(text_color);
+        invalidate();
+    }
+
+    public void setCircleColor(int circleColor){
+        circlePaint.setColor(circle_color);
         invalidate();
     }
 

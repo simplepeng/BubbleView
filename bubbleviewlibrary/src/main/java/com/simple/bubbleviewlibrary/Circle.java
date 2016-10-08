@@ -1,6 +1,6 @@
 package com.simple.bubbleviewlibrary;
 
-class Circle {
+public class Circle {
         float radius;
         float x, y;
 

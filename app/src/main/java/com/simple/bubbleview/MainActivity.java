@@ -1,5 +1,6 @@
 package com.simple.bubbleview;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,9 +17,13 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    RecyclerView recyclerView;
-    List<ItemModel> itemModels = new ArrayList<>();
-    Random random = new Random();
+    private RecyclerView recyclerView;
+    private List<ItemModel> itemModels = new ArrayList<>();
+    private Random random = new Random();
+    private int[] circleColors = {Color.parseColor("#98F5FF"),Color.parseColor("#87CEFF"),
+            Color.parseColor("#8B658B"),Color.parseColor("#B22222")};
+    private int[] textColors = {Color.parseColor("#E0FFFF"),Color.parseColor("#FF3030"),
+            Color.parseColor("#FF3030"),Color.parseColor("#000000")};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < 50; i++) {
             ItemModel itemModel = new ItemModel();
             itemModel.setMsgCount(String.valueOf(random.nextInt(50)));
+            itemModel.setCircleColor(circleColors[random.nextInt(circleColors.length)]);
+            itemModel.setTextColor(textColors[random.nextInt(textColors.length)]);
             itemModels.add(itemModel);
         }
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -47,8 +54,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(ViewHodler holder, int position) {
-            holder.tv.setText(itemModels.get(position).getMsgCount());
-            holder.bubbleView.setText(itemModels.get(position).getMsgCount());
+            ItemModel itemModel = itemModels.get(position);
+            holder.tv.setText(itemModel.getMsgCount());
+            holder.bubbleView.setText(itemModel.getMsgCount());
+            holder.bubbleView.setTextColor(itemModel.getTextColor());
+            holder.bubbleView.setCircleColor(itemModel.getCircleColor());
         }
 
         @Override
@@ -71,6 +81,24 @@ public class MainActivity extends AppCompatActivity {
 
     class ItemModel {
         private String msgCount;
+        private int textColor;
+        private int circleColor;
+
+        public int getCircleColor() {
+            return circleColor;
+        }
+
+        public void setCircleColor(int circleColor) {
+            this.circleColor = circleColor;
+        }
+
+        public int getTextColor() {
+            return textColor;
+        }
+
+        public void setTextColor(int textColor) {
+            this.textColor = textColor;
+        }
 
         public String getMsgCount() {
             return msgCount;
