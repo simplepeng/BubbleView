@@ -13,7 +13,6 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ import java.util.List;
 /**
  *
  */
-public class BezierView extends ImageView {
+public class BubbleView extends ImageView {
 
     private Path mPath;
     private Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -44,20 +43,24 @@ public class BezierView extends ImageView {
 
     private boolean canDrawPath = true;
 
-    private String text = "0";
+    private String text = "";
     private int circle_color;
     private int text_color;
     private float text_size;
+    //粒子的集合
+    private List<Particle> particleList = new ArrayList<>();
+    //是否画粒子
+    private boolean canDrawParticle = false;
+    //粒子的画笔
+    private Paint particlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Canvas mCanvas;
+    private Bitmap bitmap;
 
-    private List<Particle> particleList = new ArrayList<>();//粒子的集合
-    private boolean canDrawParticle = false;//是否画粒子
-
-
-    public BezierView(Context context) {
+    public BubbleView(Context context) {
         this(context, null);
     }
 
-    public BezierView(Context context, AttributeSet attrs) {
+    public BubbleView(Context context, AttributeSet attrs) {
         super(context, attrs);
         TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.BezierView);
         text = ta.getString(R.styleable.BezierView_text);
@@ -100,16 +103,14 @@ public class BezierView extends ImageView {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        ViewGroup parent = ((ViewGroup) this.getParent());
-        if (parent != null) {
-            parent.setClipChildren(false);
-        }
+//
+//        ViewGroup parent = ((ViewGroup) this.getParent());
+//        if (parent != null) {
+//            parent.setClipChildren(false);
+//        }
         startCircle = new Circle(w / 2, w / 2, h / 2);
         endCircle = new Circle(w / 2, w / 2, h / 2);
     }
-
-
-    Canvas mCanvas;
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -126,12 +127,9 @@ public class BezierView extends ImageView {
         drawText(canvas, endCircle);
     }
 
-    Bitmap bitmap;
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
-
             case MotionEvent.ACTION_DOWN:
                 bitmap = createBitmap();
 //                generateParticles(bitmap);
@@ -144,13 +142,11 @@ public class BezierView extends ImageView {
                 computePath();
                 invalidate();
                 lastDistan = circleCenterDistan;
+                getParent().requestDisallowInterceptTouchEvent(true);
                 break;
             case MotionEvent.ACTION_UP:
                 if (!canDrawPath) {//
-//                    this.setVisibility(View.GONE);
                     //爆炸粒子
-//                    Bitmap bitmap2 = createBitmap();
-
                     generateParticles(bitmap);
                     invalidate();
                 } else {
@@ -159,10 +155,16 @@ public class BezierView extends ImageView {
                     computePath();
                     invalidate();
                 }
-
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                if (canDrawPath) {
+                    endCircle.set(startCircle.getX(), startCircle.getY());
+                    startCircle.setRadius(endCircle.getRadius());
+                    computePath();
+                    invalidate();
+                }
                 break;
         }
-
         return true;
     }
 
@@ -286,14 +288,16 @@ public class BezierView extends ImageView {
         canvas.drawText(text, x, y, textPaint);
     }
 
-    Paint newPaint = new Paint();
-
     private void drawParticle(Canvas canvas, List<Particle> particleList) {
-
         for (Particle particle : particleList) {
-            newPaint.setColor(particle.color);
-            canvas.drawCircle(particle.cx, particle.cy, particle.radius, newPaint);
+            particlePaint.setColor(particle.color);
+            canvas.drawCircle(particle.cx, particle.cy, particle.radius, particlePaint);
         }
+    }
+
+    public void setText(String text){
+        this.text = text;
+        invalidate();
     }
 
 
