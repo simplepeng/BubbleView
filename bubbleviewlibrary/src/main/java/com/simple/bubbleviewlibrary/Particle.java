@@ -25,7 +25,7 @@ public class Particle {
         this.color = color;
     }
 
-    public void advance(float factor, int width, int height) {
+    public void broken(float factor, int width, int height) {
         cx = cx + factor * random.nextInt(width) * (random.nextFloat() - 0.5f);
         cy = cy + factor * random.nextInt(height / 2);
 

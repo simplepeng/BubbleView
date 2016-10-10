@@ -15,10 +15,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private List<ItemModel> itemModels = new ArrayList<>();
     private Random random = new Random();
-    private int[] circleColors = {Color.RED,Color.parseColor("#98F5FF"), Color.parseColor("#87CEFF"),
+    private int[] circleColors = {Color.RED, Color.parseColor("#98F5FF"), Color.parseColor("#87CEFF"),
             Color.parseColor("#8B658B"), Color.parseColor("#B22222")};
-    //    private int[] textColors = {Color.parseColor("#E0FFFF"), Color.parseColor("#FF3030"),
-//            Color.parseColor("#FF3030"), Color.parseColor("#000000")};
     private int[] textColors = {Color.BLACK, Color.WHITE};
 
     @Override

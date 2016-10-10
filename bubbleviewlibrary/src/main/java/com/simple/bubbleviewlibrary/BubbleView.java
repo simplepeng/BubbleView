@@ -35,9 +35,6 @@ public class BubbleView extends View {
     private Circle startCircle;
     //结束的圆
     private Circle endCircle;
-
-    private float startCircleRadius = Density.dp2px(getContext(), 15);
-    private float endCircleRadius = Density.dp2px(getContext(), 15);
     //两个圆连接的点
     private Point startCircleA = new Point();
     private Point startCircleB = new Point();
@@ -71,7 +68,6 @@ public class BubbleView extends View {
     private OnAnimationEndListener mOnAnimationEndListener;
     private int mWidth;
     private int mHeight;
-    private boolean isEnd = false;
 
     public BubbleView(Context context) {
         this(context, null);
@@ -89,7 +85,6 @@ public class BubbleView extends View {
     }
 
     private void init() {
-//        mPath.reset();
         circlePaint.setColor(circle_color);
         textPaint.setColor(text_color);
         textPaint.setTextSize(text_size);
@@ -155,9 +150,9 @@ public class BubbleView extends View {
                 break;
             case MotionEvent.ACTION_UP:
                 if (!canDrawPath) {//
-                    //爆炸粒子
                     generateParticles(bitmap);
-                    invalidate();
+                    startAnimation();
+//                    invalidate();
                 } else {
                     endCircle.set(startCircle.getX(), startCircle.getY());
                     startCircle.setRadius(endCircle.getRadius());
@@ -190,22 +185,25 @@ public class BubbleView extends View {
             for (int j = 0; j < Particle.particleCount; j++) {
                 float width = endCircle.getX() - endCircle.getRadius() + i * particleRadius * 2;
                 float height = endCircle.getY() - endCircle.getRadius() + j * particleRadius * 2;
-
                 int color = bitmap.getPixel(bitmap_w / Particle.particleCount * i,
                         bitmap_h / Particle.particleCount * j);
-//                Log.d("simple", "color==" + color);
                 Particle particle = new Particle(width, height, particleRadius, color);
                 particleList.add(particle);
             }
         }
-        //开始动画
+    }
+
+    /**
+     * 开始动画
+     */
+    private void startAnimation() {
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(0.0f, 1.0f);
         valueAnimator.setDuration(1500);
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 for (Particle particle : particleList) {
-                    particle.advance((Float) animation.getAnimatedValue(), getMeasuredWidth(),
+                    particle.broken((Float) animation.getAnimatedValue(), getMeasuredWidth(),
                             getMeasuredHeight());
                 }
                 invalidate();
@@ -220,7 +218,6 @@ public class BubbleView extends View {
             @Override
             public void onAnimationEnd(Animator animation) {
                 clearStatus();
-                isEnd = true;
                 if (mOnAnimationEndListener != null) {
                     mOnAnimationEndListener.onEnd(BubbleView.this);
                     Log.d(TAG, "onAnimationEnd");
@@ -300,6 +297,7 @@ public class BubbleView extends View {
 
     /**
      * 画路径
+     *
      * @param canvas
      */
     private void drawPath(Canvas canvas) {
@@ -314,6 +312,7 @@ public class BubbleView extends View {
 
     /**
      * 画圆
+     *
      * @param canvas
      * @param circle
      */
@@ -323,6 +322,7 @@ public class BubbleView extends View {
 
     /**
      * 画字
+     *
      * @param canvas
      * @param endCircle
      */
@@ -340,6 +340,7 @@ public class BubbleView extends View {
 
     /**
      * 画粒子
+     *
      * @param canvas
      * @param particleList
      */
@@ -350,21 +351,36 @@ public class BubbleView extends View {
         }
     }
 
+    /**
+     * 设置文字
+     * @param text
+     */
     public void setText(String text) {
         this.text = text;
         invalidate();
     }
 
+    /**
+     * 设置文字颜色
+     * @param textColor
+     */
     public void setTextColor(int textColor) {
         textPaint.setColor(textColor);
         invalidate();
     }
 
+    /**
+     *  设置圆的颜色
+     * @param circleColor
+     */
     public void setCircleColor(int circleColor) {
         circlePaint.setColor(circleColor);
         invalidate();
     }
 
+    /**
+     * 刷新状态
+     */
     public void clearStatus() {
         mPath.reset();
         canDrawPath = true;
