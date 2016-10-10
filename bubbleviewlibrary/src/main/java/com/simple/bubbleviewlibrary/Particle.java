@@ -14,7 +14,7 @@ public class Particle {
     int color;
     float alpha;
 
-    public static int particleCount = 15;
+    public static int particleCount = 10;
 
     Random random = new Random();
 

@@ -1,5 +1,6 @@
 package com.simple.bubbleviewlibrary;
 
+import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -23,8 +24,9 @@ import java.util.List;
  */
 public class BubbleView extends View {
 
+    private static final String TAG = "BubbleView";
     //贝塞尔曲线的path
-    private Path mPath;
+    private Path mPath = new Path();
     //圆的画笔
     private Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     //文字的画笔
@@ -63,6 +65,13 @@ public class BubbleView extends View {
     private Paint particlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     //生成粒子的bitmap
     private Bitmap bitmap;
+    //
+    private float lastDistan;
+    //动画结束的监听
+    private OnAnimationEndListener mOnAnimationEndListener;
+    private int mWidth;
+    private int mHeight;
+    private boolean isEnd = false;
 
     public BubbleView(Context context) {
         this(context, null);
@@ -80,7 +89,7 @@ public class BubbleView extends View {
     }
 
     private void init() {
-        mPath = new Path();
+//        mPath.reset();
         circlePaint.setColor(circle_color);
         textPaint.setColor(text_color);
         textPaint.setTextSize(text_size);
@@ -108,6 +117,8 @@ public class BubbleView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        this.mWidth = w;
+        this.mHeight = h;
         startCircle = new Circle(w / 2, w / 2, h / 2);
         endCircle = new Circle(w / 2, w / 2, h / 2);
     }
@@ -131,7 +142,6 @@ public class BubbleView extends View {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 bitmap = createBitmap();
-//                generateParticles(bitmap);
                 invalidate();
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -183,11 +193,12 @@ public class BubbleView extends View {
 
                 int color = bitmap.getPixel(bitmap_w / Particle.particleCount * i,
                         bitmap_h / Particle.particleCount * j);
-                Log.d("simple", "color==" + color);
+//                Log.d("simple", "color==" + color);
                 Particle particle = new Particle(width, height, particleRadius, color);
                 particleList.add(particle);
             }
         }
+        //开始动画
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(0.0f, 1.0f);
         valueAnimator.setDuration(1500);
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -200,11 +211,39 @@ public class BubbleView extends View {
                 invalidate();
             }
         });
+        valueAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                clearStatus();
+                isEnd = true;
+                if (mOnAnimationEndListener != null) {
+                    mOnAnimationEndListener.onEnd(BubbleView.this);
+                    Log.d(TAG, "onAnimationEnd");
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
         valueAnimator.start();
     }
 
+    /**
+     * 生成粒子需要的bitmap
+     */
     private Bitmap createBitmap() {
-
         int w_h = (int) (endCircle.getRadius() * 2);
         Bitmap bitmap = Bitmap.createBitmap(w_h, w_h, Bitmap.Config.ARGB_8888);
         if (bitmap != null) {
@@ -215,30 +254,28 @@ public class BubbleView extends View {
         return bitmap;
     }
 
-    private float lastDistan;
-
     /**
      * 计算path
      */
     private void computePath() {
-
         float startX = startCircle.x;
         float startY = startCircle.y;
         float endX = endCircle.x;
         float endY = endCircle.y;
-
+        //计算圆心的距离
         circleCenterDistan = (float) Math.sqrt(Math.pow(startX - endX, 2)
                 + Math.pow(startY - endY, 2));
-
+        //如果圆心的距离大于半径的5倍或者起点圆半径小于等于原来半径的1/5
         if (circleCenterDistan > endCircle.getRadius() * 5
                 || startCircle.getRadius() <= endCircle.getRadius() / 5) {
             canDrawPath = false;
             return;
         }
-
 //        startCircle.setRadius(endCircle.getRadius() - startCircleRadius * 5 / endCircle.getRadius());
+        //计算起点圆的半径
         if (circleCenterDistan > endCircle.getRadius()) {
-            startCircle.setRadius(startCircle.getRadius() - (circleCenterDistan - lastDistan) / 5);
+            startCircle.setRadius(startCircle.getRadius()
+                    - (circleCenterDistan - lastDistan) / 5);
         }
         float cos = (endY - startY) / circleCenterDistan;
         float sin = (endX - startX) / circleCenterDistan;
@@ -261,6 +298,10 @@ public class BubbleView extends View {
         quadControlE.set(xE, yE);
     }
 
+    /**
+     * 画路径
+     * @param canvas
+     */
     private void drawPath(Canvas canvas) {
         mPath.reset();
         mPath.moveTo(startCircleA.x, startCircleA.y);
@@ -271,10 +312,20 @@ public class BubbleView extends View {
         canvas.drawPath(mPath, circlePaint);
     }
 
+    /**
+     * 画圆
+     * @param canvas
+     * @param circle
+     */
     private void drawCircle(Canvas canvas, Circle circle) {
         canvas.drawCircle(circle.getX(), circle.getY(), circle.getRadius(), circlePaint);
     }
 
+    /**
+     * 画字
+     * @param canvas
+     * @param endCircle
+     */
     private void drawText(Canvas canvas, Circle endCircle) {
         if (TextUtils.isEmpty(text)) {
             return;
@@ -287,6 +338,11 @@ public class BubbleView extends View {
         canvas.drawText(text, x, y, textPaint);
     }
 
+    /**
+     * 画粒子
+     * @param canvas
+     * @param particleList
+     */
     private void drawParticle(Canvas canvas, List<Particle> particleList) {
         for (Particle particle : particleList) {
             particlePaint.setColor(particle.color);
@@ -294,20 +350,39 @@ public class BubbleView extends View {
         }
     }
 
-    public void setText(String text){
+    public void setText(String text) {
         this.text = text;
         invalidate();
     }
 
-    public void setTextColor(int textColor){
-        textPaint.setColor(text_color);
+    public void setTextColor(int textColor) {
+        textPaint.setColor(textColor);
         invalidate();
     }
 
-    public void setCircleColor(int circleColor){
-        circlePaint.setColor(circle_color);
+    public void setCircleColor(int circleColor) {
+        circlePaint.setColor(circleColor);
         invalidate();
     }
 
+    public void clearStatus() {
+        mPath.reset();
+        canDrawPath = true;
+        canDrawParticle = false;
+        endCircle.set(mWidth / 2, mHeight / 2);
+        startCircle.set(mWidth / 2, mHeight / 2);
+        startCircle.setRadius(mWidth / 2);
+        circleCenterDistan = 0;
+        computePath();
+        invalidate();
+    }
+
+    public void setOnAnimationEndListener(OnAnimationEndListener onAnimationEndListener) {
+        this.mOnAnimationEndListener = onAnimationEndListener;
+    }
+
+    public interface OnAnimationEndListener {
+        void onEnd(BubbleView bubbleView);
+    }
 
 }
