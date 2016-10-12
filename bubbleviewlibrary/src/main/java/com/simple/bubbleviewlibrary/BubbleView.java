@@ -353,6 +353,7 @@ public class BubbleView extends View {
 
     /**
      * 设置文字
+     *
      * @param text
      */
     public void setText(String text) {
@@ -362,6 +363,7 @@ public class BubbleView extends View {
 
     /**
      * 设置文字颜色
+     *
      * @param textColor
      */
     public void setTextColor(int textColor) {
@@ -370,12 +372,22 @@ public class BubbleView extends View {
     }
 
     /**
-     *  设置圆的颜色
+     * 设置圆的颜色
+     *
      * @param circleColor
      */
     public void setCircleColor(int circleColor) {
         circlePaint.setColor(circleColor);
         invalidate();
+    }
+
+    /**
+     * 设置文字大小
+     *
+     * @param size
+     */
+    public void setTextSize(float size) {
+        textPaint.setTextSize(size);
     }
 
     /**
