@@ -75,11 +75,11 @@ public class BubbleView extends View {
 
     public BubbleView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.BezierView);
-        text = ta.getString(R.styleable.BezierView_text);
-        circle_color = ta.getColor(R.styleable.BezierView_circle_color, Color.RED);
-        text_color = ta.getColor(R.styleable.BezierView_text_color, Color.WHITE);
-        text_size = ta.getDimension(R.styleable.BezierView_text_size, Density.dp2px(getContext(), 15));
+        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.BubbleView);
+        text = ta.getString(R.styleable.BubbleView_text);
+        circle_color = ta.getColor(R.styleable.BubbleView_circle_color, Color.RED);
+        text_color = ta.getColor(R.styleable.BubbleView_text_color, Color.WHITE);
+        text_size = ta.getDimension(R.styleable.BubbleView_text_size, Density.dp2px(getContext(), 15));
         ta.recycle();
         init();
     }
